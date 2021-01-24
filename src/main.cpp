@@ -1,4 +1,5 @@
 //#include <Wire.h>
+#include <Wire.h>
 #include <WiFi.h>
 #include <ArduinoOTA.h>
 #include <AsyncMqttClient.h>
@@ -7,6 +8,9 @@
 #include <WiFiSettings.h>
 #include <SoftwareSerial.h>
 #include <MHZ.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
+#include <Adafruit_I2CDevice.h>
 
 #include "config.h"
 
@@ -29,6 +33,7 @@ TimerHandle_t mqttReconnectTimer;
 TimerHandle_t wifiReconnectTimer;
 
 MHZ co2(MH_Z19_RX, MH_Z19_TX, MHZ14A);
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire);
 
 // states
 bool isUpdating = false;
@@ -275,6 +280,22 @@ void setupTimers()
     wifiReconnectTimer = xTimerCreate("wifiTimer", pdMS_TO_TICKS(2000), pdFALSE, (void *)1, reinterpret_cast<TimerCallbackFunction_t>(connectToWifi));
 }
 
+void setupDisplay()
+{
+    display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
+
+    delay(1000);
+
+    display.clearDisplay();
+
+    // demo output
+    display.setTextColor(WHITE);
+    display.setTextSize(1);
+    display.setCursor(0, 0);
+    display.print("CO2 Meter");
+    display.display();
+}
+
 void setupOTA()
 {
     ArduinoOTA
@@ -418,6 +439,7 @@ void setup()
     }
 
     setupOTA();
+    setupDisplay();
 
     detect_wakeup_reason();
 }
