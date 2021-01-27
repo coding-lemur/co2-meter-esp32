@@ -41,6 +41,9 @@ bool isWifiConnected = false;
 bool isMqttConnected = false;
 bool isPortalActive = false;
 
+int lastTemperature = NULL;
+int lastCo2Value = NULL;
+
 // (old) timers
 unsigned long lastInfoSend = 0;
 
@@ -142,10 +145,9 @@ void sendInfo()
 
     // CO2 meter
     JsonObject co2Meter = doc.createNestedObject("co2");
-    bool isPreheated = !co2.isPreHeating();
-    co2Meter["isPreheated"] = isPreheated;
-    co2Meter["temperature"] = isPreheated ? co2.getLastTemperature() : NULL;
-    co2Meter["ppm"] = isPreheated ? co2.readCO2UART() : NULL;
+    co2Meter["isReady"] = lastCo2Value != NULL;
+    co2Meter["temperature"] = lastTemperature;
+    co2Meter["ppm"] = lastCo2Value;
 
     String JS;
     serializeJson(doc, JS);
@@ -390,8 +392,9 @@ void detect_wakeup_reason()
 
 void setup()
 {
-    Serial.begin(9600);
+    Serial.begin(115200);
     SPIFFS.begin(true); // On first run, will format after failing to mount
+    //SPIFFS.format();
 
     setupTimers();
 
@@ -452,6 +455,12 @@ void loop()
     {
         if (isWifiConnected && isMqttConnected)
         {
+            if (!co2.isPreHeating())
+            {
+                lastTemperature = co2.getLastTemperature();
+                lastCo2Value = co2.readCO2UART();
+            }
+
             if (lastInfoSend == 0 || millis() - lastInfoSend >= 45000) // every 45 seconds
             {
                 sendInfo(); // TODO move to async timer
