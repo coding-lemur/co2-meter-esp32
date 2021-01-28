@@ -125,7 +125,7 @@ int GetRssiAsQuality(int rssi)
 
 const char *getMqttTopic(String part)
 {
-    String topic = "c02-meter/" + DEVICE_ID + "/" + part;
+    String topic = "co2-meter/" + DEVICE_ID + "/" + part;
 
     return topic.c_str();
 }
