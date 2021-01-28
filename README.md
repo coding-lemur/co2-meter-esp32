@@ -53,18 +53,19 @@ Topic: co2-meter/`{device ID}`/out/`{command}`
 
 #### Info state
 
-| field               | description                                             | type   |
-| ------------------- | ------------------------------------------------------- | ------ |
-| version             | version number of module firmware                       | string |
-| system.deviceId     | Unique ID of the device. Will used also in MQTT topics. | string |
-| system.freeHeap     | free heap memory of CPU                                 | number |
-| network.wifiRssi    | wifi signal strength (RSSI)                             | number |
-| network.wifiQuality | quality of signal strength (value between 0 and 100%)   | number |
-| network.wifiSsid    | SSID of connected wifi                                  | string |
-| network.ip          | ip address of the module                                | string |
-| co2.isReady         | TRUE if the sensor is preheated                         | number |
-| co2.temperature     | ...                                                     | number |
-| co2.ppm             | ...                                                     | number |
+| field               | description                                             | type    |
+| ------------------- | ------------------------------------------------------- | ------- |
+| version             | version number of module firmware                       | string  |
+| system.deviceId     | Unique ID of the device. Will used also in MQTT topics. | string  |
+| system.freeHeap     | free heap memory of CPU                                 | number  |
+| network.wifiRssi    | wifi signal strength (RSSI)                             | number  |
+| network.wifiQuality | quality of signal strength (value between 0 and 100%)   | number  |
+| network.wifiSsid    | SSID of connected wifi                                  | string  |
+| network.ip          | ip address of the module                                | string  |
+| co2.isPreheating    | TRUE if the sensor is preheated                         | boolean |
+| co2.isReady         | TRUE if the sensor is ready                             | boolean |
+| co2.temperature     | ...                                                     | number  |
+| co2.ppm             | ...                                                     | number  |
 
 ## Sketch
 
