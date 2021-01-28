@@ -472,8 +472,11 @@ void loop()
                 appState = 1;
 
                 display.clearDisplay();
+                display.setTextSize(1);
+
                 display.setCursor(0, 0);
                 display.print("preheating...");
+
                 display.display();
             }
         }
@@ -493,14 +496,22 @@ void loop()
                 Serial.println(lastCo2Value);
 
                 display.clearDisplay();
+                display.setTextSize(1);
 
+                display.setCursor(0, 0);
                 display.print("temp: ");
                 display.print(lastTemperature);
 
-                display.setCursor(10, 0);
-
+                display.setCursor(0, 10);
                 display.print("co2: ");
                 display.print(lastCo2Value);
+
+                if (lastCo2Value >= CO2_WARN_PPM)
+                {
+                    display.setCursor(0, 40);
+                    display.setTextSize(2);
+                    display.print("L Ü F T E N");
+                }
 
                 display.display();
 
