@@ -32,7 +32,7 @@ AsyncMqttClient mqttClient;
 TimerHandle_t mqttReconnectTimer;
 TimerHandle_t wifiReconnectTimer;
 
-MHZ co2(MH_Z19_RX, MH_Z19_TX, MHZ14A);
+MHZ co2Sensor(&Serial2, MHZ14A);
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire);
 
 // states
@@ -40,12 +40,16 @@ bool isUpdating = false;
 bool isWifiConnected = false;
 bool isMqttConnected = false;
 bool isPortalActive = false;
+byte appState = 0; // 0 = init; 1 = preheating; 2 = ready
 
-int lastTemperature = NULL;
-int lastCo2Value = NULL;
+bool isPreheating = true;
+bool isCo2SensorReady = false;
+int lastTemperature = 0;
+int lastCo2Value = 0;
 
 // (old) timers
 unsigned long lastInfoSend = 0;
+unsigned long lastCo2Measurement = 0;
 
 // settings
 String mqtt_host;
@@ -145,7 +149,8 @@ void sendInfo()
 
     // CO2 meter
     JsonObject co2Meter = doc.createNestedObject("co2");
-    co2Meter["isReady"] = lastCo2Value != NULL;
+    co2Meter["isPreheating"] = isPreheating;
+    co2Meter["isReady"] = isCo2SensorReady;
     co2Meter["temperature"] = lastTemperature;
     co2Meter["ppm"] = lastCo2Value;
 
@@ -294,7 +299,7 @@ void setupDisplay()
     display.setTextColor(WHITE);
     display.setTextSize(1);
     display.setCursor(0, 0);
-    display.print("CO2 Meter");
+    display.print(">> co2 meter <<");
     display.display();
 }
 
@@ -393,8 +398,12 @@ void detect_wakeup_reason()
 void setup()
 {
     Serial.begin(115200);
+    Serial2.begin(9600);
+
+    //co2Sensor.setDebug(true);
+
     SPIFFS.begin(true); // On first run, will format after failing to mount
-    //SPIFFS.format();
+    //SPIFFS.format(); // TODO reset config on connection MQTT fail
 
     setupTimers();
 
@@ -453,14 +462,54 @@ void loop()
 
     if (!isPortalActive && !isUpdating)
     {
+        isPreheating = co2Sensor.isPreHeating();
+        isCo2SensorReady = co2Sensor.isReady();
+
+        if (isPreheating)
+        {
+            if (appState != 1)
+            {
+                appState = 1;
+
+                display.clearDisplay();
+                display.setCursor(0, 0);
+                display.print("preheating...");
+                display.display();
+            }
+        }
+        else
+        {
+            appState = 2;
+
+            if (lastCo2Measurement == 0 || millis() - lastCo2Measurement >= 60000) // every minute
+            {
+                lastTemperature = co2Sensor.getLastTemperature();
+                lastCo2Value = co2Sensor.readCO2UART();
+
+                Serial.print("temperature: ");
+                Serial.println(lastTemperature);
+
+                Serial.print("co2: ");
+                Serial.println(lastCo2Value);
+
+                display.clearDisplay();
+
+                display.print("temp: ");
+                display.print(lastTemperature);
+
+                display.setCursor(10, 0);
+
+                display.print("co2: ");
+                display.print(lastCo2Value);
+
+                display.display();
+
+                lastCo2Measurement = millis();
+            }
+        }
+
         if (isWifiConnected && isMqttConnected)
         {
-            if (!co2.isPreHeating())
-            {
-                lastTemperature = co2.getLastTemperature();
-                lastCo2Value = co2.readCO2UART();
-            }
-
             if (lastInfoSend == 0 || millis() - lastInfoSend >= 45000) // every 45 seconds
             {
                 sendInfo(); // TODO move to async timer
