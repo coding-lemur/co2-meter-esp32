@@ -1,18 +1,46 @@
 # CO2 Meter with ESP32
 
-## Status
-
-:construction: **Still in development!** :construction:
-
-No final version at the moment! :construction_worker: :building_construction:
-
 ## Description
 
 Messasure CO2 particles in to the air.
+Warns when you should ventilate the room.
 
 ## Features
 
-- ...
+- Measure CO2 concentration in room
+- MQTT support (for Node-Red or Home Assistant)
+- easy integration in own WiFi network (Hotspot settings-page)
+- OLED display: can used independently thanks to the measured values shown on the display
+
+## Parts
+
+- [ESP32 Development Board](https://www.banggood.com/ESP32-Development-Board-WiFi+bluetooth-Ultra-Low-Power-Consumption-Dual-Cores-ESP-32-ESP-32S-Board-p-1109512.html?rmmds=myorder&cur_warehouse=CN)
+- [NDIR CO2 Sensor MH-Z14A](https://www.banggood.com/NDIR-CO2-Sensor-MH-Z14A-PWM-NDIR-Infrared-Carbon-Dioxide-Sensor-Module-Serial-Port-0-5000PPM-Controller-p-1248270.html?rmmds=myorder&cur_warehouse=CZ)
+- [0.96 Inch OLED Display 128\*64 SSD1306](https://www.banggood.com/3pcs-White-0_96-Inch-OLED-I2C-IIC-Communication-Display-128+64-LCD-Module-p-1572835.html?cur_warehouse=CN&rmmds=search)
+
+## Sketch
+
+![sketch](/docs/sketch_bb.png)
+
+## Wireing
+
+### CO2 sensor (MH-Z14A)
+
+| Pin on Sensor | description | Pin on ESP32                     |
+| ------------- | ----------- | -------------------------------- |
+| 16            | GND         | GND                              |
+| 17            | Power (5V)  | VIN (can also used as 5V output) |
+| 18            | UART RXD    | GPIO17 (UART 2 TX)               |
+| 19            | UART TXD    | GPIO16 (UART 2 RX)               |
+
+### OLED display (SSD1306)
+
+| Pin on Sensor | description  | Pin on ESP32     |
+| ------------- | ------------ | ---------------- |
+| GND           | GND          | GND              |
+| VCC           | Power (3.3V) | 3V3              |
+| SCL           |              | GPIO22 (I2C SCL) |
+| SDA           |              | GPIO21 (I2C SDA) |
 
 ## Setup
 
@@ -64,22 +92,17 @@ Topic: co2-meter/`{device ID}`/out/`{command}`
 | network.ip          | ip address of the module                                | string  |
 | co2.isPreheating    | TRUE if the sensor is preheated                         | boolean |
 | co2.isReady         | TRUE if the sensor is ready                             | boolean |
-| co2.temperature     | ...                                                     | number  |
-| co2.ppm             | ...                                                     | number  |
-
-## Sketch
-
-![sketch](/docs/sketch_bb.png)
+| co2.temperature     | temperature from sensor (in °C)                         | number  |
+| co2.ppm             | CO2 concentration in the air (in ppm)                   | number  |
 
 ## TODOs
 
 - [x] buy sensor and ESP32
 - [x] soldering first prototype
 - [x] add WifiManager to easy setup
-- [ ] create sketch
-- [ ] test firmware
-- [ ] test OTA updates
+- [x] create sketch
+- [x] test firmware
+- [x] test OTA updates
+- [x] add part list
 - [ ] create housing (from wood)
-- [ ] create example flow with [Node-RED](https://nodered.org/)
-- [ ] add part list
 - [ ] add video doc
