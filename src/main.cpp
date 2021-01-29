@@ -522,7 +522,6 @@ void loop()
                 display.setCursor(0, 10);
                 display.print("CO2: ");
                 display.print(lastCo2Value);
-                display.print(" ppm");
 
                 if (lastCo2Value >= CO2_WARN_PPM)
                 {
