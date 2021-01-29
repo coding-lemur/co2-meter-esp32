@@ -327,7 +327,7 @@ void setupOTA()
             Serial.println("Start updating " + type);
 
             display.clearDisplay();
-            display.setTextSize(2);
+            display.setTextSize(1);
             display.print("updating...");
 
             display.display();
@@ -338,16 +338,19 @@ void setupOTA()
             isUpdating = false;
         })
         .onProgress([](unsigned int progress, unsigned int total) {
-            Serial.printf("Progress: %u%%\r", (progress / (total / 100)));
+            unsigned int percentValue = progress / (total / 100);
+
+            Serial.printf("Progress: %u%%\r", percentValue);
 
             display.clearDisplay();
 
             display.setCursor(0, 0);
-            display.setTextSize(2);
+            display.setTextSize(1);
             display.print("updating...");
 
             display.setCursor(0, 40);
-            display.print(progress);
+            display.setTextSize(2);
+            display.print(percentValue);
             display.print("%");
 
             display.display();
