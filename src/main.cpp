@@ -300,6 +300,7 @@ void setupDisplay()
     display.setTextSize(1);
     display.setCursor(0, 0);
     display.print(">> co2 meter <<");
+
     display.display();
 }
 
@@ -309,6 +310,8 @@ void setupOTA()
         .setHostname(WiFiSettings.hostname.c_str())
         .setPassword(WiFiSettings.password.c_str())
         .onStart([]() {
+            isUpdating = true;
+
             String type;
 
             if (ArduinoOTA.getCommand() == U_FLASH)
@@ -323,7 +326,11 @@ void setupOTA()
             // NOTE: if updating FS this would be the place to unmount FS using FS.end()
             Serial.println("Start updating " + type);
 
-            isUpdating = true;
+            display.clearDisplay();
+            display.setTextSize(2);
+            display.print("updating...");
+
+            display.display();
         })
         .onEnd([]() {
             Serial.println("\nEnd");
@@ -332,6 +339,18 @@ void setupOTA()
         })
         .onProgress([](unsigned int progress, unsigned int total) {
             Serial.printf("Progress: %u%%\r", (progress / (total / 100)));
+
+            display.clearDisplay();
+
+            display.setCursor(0, 0);
+            display.setTextSize(2);
+            display.print("updating...");
+
+            display.setCursor(0, 40);
+            display.print(progress);
+            display.print("%");
+
+            display.display();
         })
         .onError([](ota_error_t error) {
             Serial.printf("Error[%u]: ", error);
@@ -496,21 +515,20 @@ void loop()
                 Serial.println(lastCo2Value);
 
                 display.clearDisplay();
-                display.setTextSize(1);
+                display.setTextSize(2);
 
                 display.setCursor(0, 0);
-                display.print("temp: ");
-                display.print(lastTemperature);
 
                 display.setCursor(0, 10);
-                display.print("co2: ");
+                display.print("CO2: ");
                 display.print(lastCo2Value);
+                display.print(" ppm");
 
                 if (lastCo2Value >= CO2_WARN_PPM)
                 {
                     display.setCursor(0, 40);
                     display.setTextSize(2);
-                    display.print("L Ü F T E N");
+                    display.print("VENTILATE");
                 }
 
                 display.display();
