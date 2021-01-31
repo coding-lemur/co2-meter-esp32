@@ -5,6 +5,9 @@
 Messasure CO2 particles in to the air.
 Warns when you should ventilate the room.
 
+You find an video documentary (in german) on my Youtube channel:
+https://www.youtube.com/watch?v=MKK0GAGxzaE
+
 ## Features
 
 - Measure CO2 concentration in room
@@ -22,7 +25,7 @@ Warns when you should ventilate the room.
 
 ![sketch](/docs/sketch_bb.png)
 
-## Wireing
+## Wiring
 
 ### CO2 sensor (MH-Z14A)
 
@@ -104,5 +107,5 @@ Topic: co2-meter/`{device ID}`/out/`{command}`
 - [x] test firmware
 - [x] test OTA updates
 - [x] add part list
+- [x] add video doc
 - [ ] create housing (from wood)
-- [ ] add video doc
