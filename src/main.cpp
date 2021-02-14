@@ -24,7 +24,7 @@ extern "C"
 #define DEVICE_ID (Sprintf("%06" PRIx64, ESP.getEfuseMac() >> 24)) // unique device ID
 #define uS_TO_S_FACTOR 1000000                                     // Conversion factor for micro seconds to seconds
 
-String version = "0.1.0";
+String version = "1.0.0";
 
 AsyncMqttClient mqttClient;
 
@@ -239,6 +239,13 @@ void processingMessage(String channel, DynamicJsonDocument doc)
     {
         unsigned long seconds = doc["duration"].as<unsigned long>();
         goSleep(seconds);
+    }
+    else if (channel.equals("display"))
+    {
+        bool turnOn = doc["on"].as<bool>();
+        uint8_t command = turnOn ? SSD1306_DISPLAYON : SSD1306_DISPLAYOFF;
+
+        display.ssd1306_command(command);
     }
     else if (channel.equals("hard-reset"))
     {

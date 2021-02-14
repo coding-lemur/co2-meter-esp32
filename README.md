@@ -70,6 +70,7 @@ Topic: co2-meter/`{device ID}`/in/`{command}`
 | ---------- | ------------------------------------------------------------------------------------------ | -------------------- |
 | sleep      | Start deep-sleep for specific duration (in seconds!)                                       | { duration: number } |
 | info       | Send info via MQTT topic `co2-meter/out/info` package                                      | -                    |
+| display    | turn display on/off                                                                        | { on: boolean }      |
 | hard-reset | Reset config with WiFi and MQTT settings and start internal hotspot to reconfigure device. | -                    |
 
 ### Outcoming commands
