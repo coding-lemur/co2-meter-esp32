@@ -1,4 +1,3 @@
-//#include <Wire.h>
 #include <Wire.h>
 #include <WiFi.h>
 #include <ArduinoOTA.h>
@@ -6,7 +5,6 @@
 #include <ArduinoJson.h>
 #include <SPIFFS.h>
 #include <WiFiSettings.h>
-#include <SoftwareSerial.h>
 #include <MHZ.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
