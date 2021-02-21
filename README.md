@@ -99,6 +99,14 @@ Topic: co2-meter/`{device ID}`/out/`{command}`
 | co2.temperature     | temperature from sensor (in °C)                         | number  |
 | co2.ppm             | CO2 concentration in the air (in ppm)                   | number  |
 
+## Housing
+
+You can create a robust housing with a 3D printer or at the workbench.
+
+I decided to make one out of plywood. It didn't turn out perfect, but it protects the components.
+
+![sketch](/docs/housing.jpg)
+
 ## TODOs
 
 - [x] buy sensor and ESP32
@@ -109,4 +117,4 @@ Topic: co2-meter/`{device ID}`/out/`{command}`
 - [x] test OTA updates
 - [x] add part list
 - [x] add video doc
-- [ ] create housing (from wood)
+- [x] create housing (from wood)
