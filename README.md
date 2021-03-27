@@ -17,9 +17,11 @@ https://www.youtube.com/watch?v=MKK0GAGxzaE
 
 ## Parts
 
-- [ESP32 Development Board](https://www.banggood.com/ESP32-Development-Board-WiFi+bluetooth-Ultra-Low-Power-Consumption-Dual-Cores-ESP-32-ESP-32S-Board-p-1109512.html?rmmds=myorder&cur_warehouse=CN)
-- [NDIR CO2 Sensor MH-Z14A](https://www.banggood.com/NDIR-CO2-Sensor-MH-Z14A-PWM-NDIR-Infrared-Carbon-Dioxide-Sensor-Module-Serial-Port-0-5000PPM-Controller-p-1248270.html?rmmds=myorder&cur_warehouse=CZ)
-- [0.96 Inch OLED Display 128\*64 SSD1306](https://www.banggood.com/3pcs-White-0_96-Inch-OLED-I2C-IIC-Communication-Display-128+64-LCD-Module-p-1572835.html?cur_warehouse=CN&rmmds=search)
+- [ESP32 Development Board \*](https://www.banggood.com/custlink/mKDYaR8Uuc)
+- [NDIR CO2 Sensor MH-Z14A \*](https://www.banggood.com/custlink/DmDhaY8k79)
+- [0.96 Inch OLED Display 128\*64 SSD1306 \*](https://www.banggood.com/custlink/3DmyLhZMwa)
+
+`* Affiliate Links - help to support my projects`
 
 ## Sketch
 
