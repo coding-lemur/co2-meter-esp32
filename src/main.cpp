@@ -149,8 +149,12 @@ void sendInfo()
     JsonObject co2Meter = doc.createNestedObject("co2");
     co2Meter["isPreheating"] = isPreheating;
     co2Meter["isReady"] = isCo2SensorReady;
-    co2Meter["temperature"] = lastTemperature;
-    co2Meter["ppm"] = lastCo2Value;
+
+    if (isCo2SensorReady)
+    {
+        co2Meter["temperature"] = lastTemperature;
+        co2Meter["ppm"] = lastCo2Value;
+    }
 
     String JS;
     serializeJson(doc, JS);
@@ -511,7 +515,7 @@ void loop()
         {
             appState = 2;
 
-            if (lastCo2Measurement == 0 || millis() - lastCo2Measurement >= 60000) // every minute
+            if (lastCo2Measurement == 0 || millis() - lastCo2Measurement >= READ_SENSOR_INTERVAL)
             {
                 lastTemperature = co2Sensor.getLastTemperature();
                 lastCo2Value = co2Sensor.readCO2UART();
@@ -546,7 +550,7 @@ void loop()
 
         if (isWifiConnected && isMqttConnected)
         {
-            if (lastInfoSend == 0 || millis() - lastInfoSend >= 45000) // every 45 seconds
+            if (lastInfoSend == 0 || millis() - lastInfoSend >= MQTT_UPDATE_INTERVAL)
             {
                 sendInfo(); // TODO move to async timer
             }
