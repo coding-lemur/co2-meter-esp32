@@ -97,7 +97,7 @@ Topic: co2-meter/`{device ID}`/out/`{command}`
 | network.wifiSsid    | SSID of connected wifi                                  | string  |
 | network.ip          | ip address of the module                                | string  |
 | co2.isPreheating    | TRUE if the sensor is preheated                         | boolean |
-| co2.isReady         | TRUE if the sensor is ready                             | boolean |
+| co2.isReady         | ignore                             | boolean |
 | co2.temperature     | temperature from sensor (in °C)                         | number  |
 | co2.ppm             | CO2 concentration in the air (in ppm)                   | number  |
 
