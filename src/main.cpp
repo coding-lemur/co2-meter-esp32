@@ -48,11 +48,6 @@ bool isMqttConnected = false;
 bool isPortalActive = false;
 byte appState = 0; // 0 = init; 1 = preheating; 2 = ready
 
-bool isPreheating = true;
-bool isCo2SensorReady = false;
-int lastTemperature = 0;
-int lastCo2Value = 0;
-
 // (old) timers
 unsigned long lastInfoSend = 0;
 unsigned long lastCo2Measurement = 0;
@@ -153,15 +148,17 @@ void sendInfo()
     network["wifiSsid"] = WiFi.SSID();
     network["ip"] = WiFi.localIP().toString();
 
+    bool isReady = co2Sensor.isReady();
+
     // CO2 meter
     JsonObject co2Meter = doc.createNestedObject("co2");
-    co2Meter["isPreheating"] = isPreheating;
-    co2Meter["isReady"] = isCo2SensorReady;
+    co2Meter["isPreheating"] = co2Sensor.isPreHeating();
+    co2Meter["isReady"] = isReady;
 
-    if (isCo2SensorReady)
+    if (isReady)
     {
-        co2Meter["temperature"] = lastTemperature;
-        co2Meter["ppm"] = lastCo2Value;
+        co2Meter["temperature"] = co2Sensor.getLastTemperature();
+        co2Meter["ppm"] = co2Sensor.readCO2UART();
     }
 
     String JS;
@@ -508,8 +505,7 @@ void loop()
 
     if (!isPortalActive && !isUpdating)
     {
-        isPreheating = co2Sensor.isPreHeating();
-        isCo2SensorReady = co2Sensor.isReady();
+        bool isPreheating = co2Sensor.isPreHeating();
 
         if (isPreheating)
         {
@@ -532,8 +528,8 @@ void loop()
 
             if (lastCo2Measurement == 0 || millis() - lastCo2Measurement >= READ_SENSOR_INTERVAL)
             {
-                lastTemperature = co2Sensor.getLastTemperature();
-                lastCo2Value = co2Sensor.readCO2UART();
+                int lastTemperature = co2Sensor.getLastTemperature();
+                int lastCo2Value = co2Sensor.readCO2UART();
 
                 Serial.print("temperature: ");
                 Serial.println(lastTemperature);
