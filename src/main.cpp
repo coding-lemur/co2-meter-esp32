@@ -30,7 +30,7 @@ extern "C"
 #define DEVICE_ID (Sprintf("%06" PRIx64, ESP.getEfuseMac() >> 24)) // unique device ID
 #define uS_TO_S_FACTOR 1000000                                     // Conversion factor for micro seconds to seconds
 
-String version = "1.0.0";
+String version = "1.1.2";
 
 AsyncMqttClient mqttClient;
 
@@ -47,6 +47,9 @@ bool isWifiConnected = false;
 bool isMqttConnected = false;
 bool isPortalActive = false;
 byte appState = 0; // 0 = init; 1 = preheating; 2 = ready
+
+int lastTemperature = 0;
+int lastCo2Value = 0;
 
 // (old) timers
 unsigned long lastInfoSend = 0;
@@ -152,8 +155,8 @@ void sendInfo()
     JsonObject co2Meter = doc.createNestedObject("co2");
     co2Meter["isPreheating"] = co2Sensor.isPreHeating();
     co2Meter["isReady"] = co2Sensor.isReady();
-    co2Meter["temperature"] = co2Sensor.getLastTemperature();
-    co2Meter["ppm"] = co2Sensor.readCO2UART();
+    co2Meter["temperature"] = lastTemperature;
+    co2Meter["ppm"] = lastCo2Value > 0 ? lastCo2Value : 0;
 
     String JS;
     serializeJson(doc, JS);
@@ -522,8 +525,8 @@ void loop()
 
             if (lastCo2Measurement == 0 || millis() - lastCo2Measurement >= READ_SENSOR_INTERVAL)
             {
-                int lastTemperature = co2Sensor.getLastTemperature();
-                int lastCo2Value = co2Sensor.readCO2UART();
+                lastTemperature = co2Sensor.getLastTemperature();
+                lastCo2Value = co2Sensor.readCO2UART();
 
                 Serial.print("temperature: ");
                 Serial.println(lastTemperature);
