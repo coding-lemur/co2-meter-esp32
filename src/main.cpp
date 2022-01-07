@@ -148,18 +148,12 @@ void sendInfo()
     network["wifiSsid"] = WiFi.SSID();
     network["ip"] = WiFi.localIP().toString();
 
-    bool isReady = co2Sensor.isReady();
-
     // CO2 meter
     JsonObject co2Meter = doc.createNestedObject("co2");
     co2Meter["isPreheating"] = co2Sensor.isPreHeating();
-    co2Meter["isReady"] = isReady;
-
-    if (isReady)
-    {
-        co2Meter["temperature"] = co2Sensor.getLastTemperature();
-        co2Meter["ppm"] = co2Sensor.readCO2UART();
-    }
+    co2Meter["isReady"] = co2Sensor.isReady();
+    co2Meter["temperature"] = co2Sensor.getLastTemperature();
+    co2Meter["ppm"] = co2Sensor.readCO2UART();
 
     String JS;
     serializeJson(doc, JS);
