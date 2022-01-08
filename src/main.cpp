@@ -30,7 +30,7 @@ extern "C"
 #define DEVICE_ID (Sprintf("%06" PRIx64, ESP.getEfuseMac() >> 24)) // unique device ID
 #define uS_TO_S_FACTOR 1000000                                     // Conversion factor for micro seconds to seconds
 
-String version = "1.1.2";
+String version = "1.1.3";
 
 AsyncMqttClient mqttClient;
 
@@ -154,7 +154,6 @@ void sendInfo()
     // CO2 meter
     JsonObject co2Meter = doc.createNestedObject("co2");
     co2Meter["isPreheating"] = co2Sensor.isPreHeating();
-    co2Meter["isReady"] = co2Sensor.isReady();
     co2Meter["temperature"] = lastTemperature;
     co2Meter["ppm"] = lastCo2Value > 0 ? lastCo2Value : 0;
 
