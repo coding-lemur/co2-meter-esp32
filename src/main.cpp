@@ -204,7 +204,7 @@ void hardReset()
 
     ESP.restart();
 
-    //WiFiSettings.portal();
+    // WiFiSettings.portal();
 }
 
 void goSleep(unsigned long seconds)
@@ -247,7 +247,6 @@ void processingMessage(String channel, DynamicJsonDocument doc)
     {
         bool turnOn = doc["on"].as<bool>();
         uint8_t command = turnOn ? SSD1306_DISPLAYON : SSD1306_DISPLAYOFF;
-
         display.ssd1306_command(command);
     }
     else if (channel.equals("hard-reset"))
@@ -341,14 +340,12 @@ void setupOTA()
                      display.setTextSize(1);
                      display.print("updating...");
 
-                     display.display();
-                 })
+                     display.display(); })
         .onEnd([]()
                {
                    Serial.println("\nEnd");
 
-                   isUpdating = false;
-               })
+                   isUpdating = false; })
         .onProgress([](unsigned int progress, unsigned int total)
                     {
                         unsigned int percentValue = progress / (total / 100);
@@ -366,8 +363,7 @@ void setupOTA()
                         display.print(percentValue);
                         display.print("%");
 
-                        display.display();
-                    })
+                        display.display(); })
         .onError([](ota_error_t error)
                  {
                      Serial.printf("Error[%u]: ", error);
@@ -391,8 +387,7 @@ void setupOTA()
                      else if (error == OTA_END_ERROR)
                      {
                          Serial.println("End Failed");
-                     }
-                 })
+                     } })
         .begin();
 }
 
@@ -436,10 +431,10 @@ void setup()
     Serial.begin(115200);
     Serial2.begin(9600);
 
-    //co2Sensor.setDebug(true);
+    // co2Sensor.setDebug(true);
 
     SPIFFS.begin(true); // On first run, will format after failing to mount
-    //SPIFFS.format(); // TODO reset config on connection MQTT fail
+    // SPIFFS.format(); // TODO reset config on connection MQTT fail
 
     setupTimers();
 
@@ -462,7 +457,6 @@ void setup()
     {
         ArduinoOTA.handle();
     };
-
     WiFiSettings.onConfigSaved = []()
     {
         ESP.restart();
