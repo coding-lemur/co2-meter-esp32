@@ -3,12 +3,14 @@
 #include <ArduinoOTA.h>
 #include <AsyncMqttClient.h>
 #include <ArduinoJson.h>
+#include <StreamUtils.h>
 #include <SPIFFS.h>
 #include <WiFiSettings.h>
 #include <MHZ.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 #include <Adafruit_I2CDevice.h>
+#include <ESPAsyncWebServer.h>
 #include <SoftwareSerial.h>
 
 #include "config.h"
@@ -30,7 +32,7 @@ extern "C"
 #define DEVICE_ID (Sprintf("%06" PRIx64, ESP.getEfuseMac() >> 24)) // unique device ID
 #define uS_TO_S_FACTOR 1000000                                     // Conversion factor for micro seconds to seconds
 
-String version = "1.1.3";
+String version = "1.2.0";
 
 AsyncMqttClient mqttClient;
 
@@ -40,6 +42,7 @@ TimerHandle_t wifiReconnectTimer;
 
 MHZ co2Sensor(&Serial2, MHZ14A);
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire);
+AsyncWebServer server(80);
 
 // states
 bool isUpdating = false;
@@ -134,7 +137,8 @@ const char *getMqttTopic(String part)
     return topic.c_str();
 }
 
-void sendInfo()
+// TODO change to StaticJsonDocument<>
+DynamicJsonDocument getInfoJson()
 {
     DynamicJsonDocument doc(1024);
     doc["version"] = version;
@@ -157,10 +161,15 @@ void sendInfo()
     co2Meter["temperature"] = lastTemperature;
     co2Meter["ppm"] = lastCo2Value > 0 ? lastCo2Value : 0;
 
-    String JS;
-    serializeJson(doc, JS);
+    return doc;
+}
 
-    mqttClient.publish(getMqttTopic("out/info"), 1, false, JS.c_str());
+void sendInfo()
+{
+    StringStream stream;
+    serializeJson(getInfoJson(), stream);
+
+    mqttClient.publish(getMqttTopic("out/info"), 1, false, stream.str().c_str());
 
     lastInfoSend = millis();
 }
@@ -290,27 +299,27 @@ void connectToWifi()
     WiFiSettings.connect(true, 30);
 }
 
+void setupWebserver()
+{
+    server.on("/", HTTP_GET, [](AsyncWebServerRequest *request)
+              { request->send(200, "text/plain", "Hi! This is a sample response."); });
+
+    server.on("/api/info", HTTP_GET, [](AsyncWebServerRequest *request)
+              {
+        auto infoJson = getInfoJson();
+
+        StringStream stream;
+        auto size = serializeJson(infoJson, stream);
+
+        request->send(stream, "application/json", size); });
+
+    server.begin();
+}
+
 void setupTimers()
 {
     mqttReconnectTimer = xTimerCreate("mqttTimer", pdMS_TO_TICKS(2000), pdFALSE, (void *)0, reinterpret_cast<TimerCallbackFunction_t>(connectToMqtt));
     wifiReconnectTimer = xTimerCreate("wifiTimer", pdMS_TO_TICKS(2000), pdFALSE, (void *)1, reinterpret_cast<TimerCallbackFunction_t>(connectToWifi));
-}
-
-void setupDisplay()
-{
-    display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
-
-    delay(1000);
-
-    display.clearDisplay();
-
-    // demo output
-    display.setTextColor(WHITE);
-    display.setTextSize(1);
-    display.setCursor(0, 0);
-    display.print(">> co2 meter <<");
-
-    display.display();
 }
 
 void setupOTA()
@@ -391,6 +400,50 @@ void setupOTA()
         .begin();
 }
 
+void setupWifiSettings()
+{
+    WiFi.onEvent(onWiFiEvent);
+
+    WiFiSettings.secure = true;
+    WiFiSettings.hostname = "co2-meter-"; // will auto add device ID
+    WiFiSettings.password = PASSWORD;
+
+    // Set callbacks to start OTA when the portal is active
+    WiFiSettings.onPortal = []()
+    {
+        isPortalActive = true;
+
+        Serial.println("WiFi config portal active");
+
+        setupOTA();
+    };
+    WiFiSettings.onPortalWaitLoop = []()
+    {
+        ArduinoOTA.handle();
+    };
+    WiFiSettings.onConfigSaved = []()
+    {
+        ESP.restart();
+    };
+}
+
+void setupDisplay()
+{
+    display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
+
+    delay(1000);
+
+    display.clearDisplay();
+
+    // demo output
+    display.setTextColor(WHITE);
+    display.setTextSize(1);
+    display.setCursor(0, 0);
+    display.print(">> co2 meter <<");
+
+    display.display();
+}
+
 void detect_wakeup_reason()
 {
     esp_sleep_wakeup_cause_t wakeup_reason = esp_sleep_get_wakeup_cause();
@@ -437,30 +490,8 @@ void setup()
     // SPIFFS.format(); // TODO reset config on connection MQTT fail
 
     setupTimers();
-
-    WiFi.onEvent(onWiFiEvent);
-
-    WiFiSettings.secure = true;
-    WiFiSettings.hostname = "co2-meter-"; // will auto add device ID
-    WiFiSettings.password = PASSWORD;
-
-    // Set callbacks to start OTA when the portal is active
-    WiFiSettings.onPortal = []()
-    {
-        isPortalActive = true;
-
-        Serial.println("WiFi config portal active");
-
-        setupOTA();
-    };
-    WiFiSettings.onPortalWaitLoop = []()
-    {
-        ArduinoOTA.handle();
-    };
-    WiFiSettings.onConfigSaved = []()
-    {
-        ESP.restart();
-    };
+    setupWifiSettings();
+    setupWebserver();
 
     // define custom settings
     mqtt_host = WiFiSettings.string("mqtt_host", "192.168.1.1");
