@@ -96,6 +96,7 @@ Topic: co2-meter/`{device ID}`/out/`{command}`
 | network.wifiQuality | quality of signal strength (value between 0 and 100%)   | number  |
 | network.wifiSsid    | SSID of connected wifi                                  | string  |
 | network.ip          | ip address of the module                                | string  |
+| network.mac         | MAC address of the device                               | string  |
 | co2.isPreheating    | TRUE if the sensor is preheated                         | boolean |
 | co2.temperature     | temperature from sensor (in °C)                         | number  |
 | co2.ppm             | CO2 concentration in the air (in ppm)                   | number  |

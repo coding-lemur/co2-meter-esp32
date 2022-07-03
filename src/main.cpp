@@ -110,7 +110,7 @@ void onWiFiEvent(WiFiEvent_t event)
     }
 }
 
-int GetRssiAsQuality(int rssi)
+int getRssiAsQuality(int rssi)
 {
     int quality = 0;
 
@@ -151,9 +151,10 @@ DynamicJsonDocument getInfoJson()
     JsonObject network = doc.createNestedObject("network");
     int8_t rssi = WiFi.RSSI();
     network["wifiRssi"] = rssi;
-    network["wifiQuality"] = GetRssiAsQuality(rssi);
+    network["wifiQuality"] = getRssiAsQuality(rssi);
     network["wifiSsid"] = WiFi.SSID();
     network["ip"] = WiFi.localIP().toString();
+    network["mac"] = WiFi.macAddress();
 
     // CO2 meter
     JsonObject co2Meter = doc.createNestedObject("co2");
