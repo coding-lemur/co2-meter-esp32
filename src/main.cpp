@@ -40,7 +40,7 @@ AsyncMqttClient mqttClient;
 TimerHandle_t mqttReconnectTimer;
 TimerHandle_t wifiReconnectTimer;
 
-MHZ co2Sensor(&Serial2, MHZ14A);
+MHZ co2Sensor(&Serial2, MHZ::MHZ14A);
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire);
 AsyncWebServer server(80);
 
