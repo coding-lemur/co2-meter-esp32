@@ -32,7 +32,7 @@ extern "C"
 #define DEVICE_ID (Sprintf("%06" PRIx64, ESP.getEfuseMac() >> 24)) // unique device ID
 #define uS_TO_S_FACTOR 1000000                                     // Conversion factor for micro seconds to seconds
 
-String version = "1.2.0";
+String version = "1.2.1";
 
 AsyncMqttClient mqttClient;
 
