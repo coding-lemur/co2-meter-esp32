@@ -6,7 +6,7 @@
 #include <ArduinoJson.h>
 #include <StreamUtils.h>
 #include <MHZ.h>
-#include <PubSubClient.h>
+#include <AsyncMqttClient.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 #include <Adafruit_I2CDevice.h>
@@ -20,7 +20,7 @@ Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire);
 MHZ co2Sensor(&Serial2, MHZ::MHZ14A);
 WiFiManager wifiManager;
 WiFiClient espClient;
-PubSubClient client(espClient);
+AsyncMqttClient mqttClient;
 static AsyncWebServer server(80);
 
 // timers

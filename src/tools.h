@@ -1,3 +1,8 @@
+#include <WiFi.h>
+#include <time.h>
+#include <LittleFS.h>
+#include <ArduinoJson.h>
+
 double round2(double value)
 {
     return (int)(value * 100 + 0.5) / 100.0;
