@@ -10,3 +10,5 @@
 #define MQTT_UPDATE_INTERVAL 45000 // in ms
 
 int CO2_WARN_PPM = 1200;
+
+const String version = "2.0.0-beta";

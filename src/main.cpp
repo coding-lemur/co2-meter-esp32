@@ -2,16 +2,17 @@
 #include <WiFi.h>
 #include <WiFiManager.h>
 #include <ArduinoOTA.h>
-// #include <ArduinoJson.h>
-// #include <StreamUtils.h>
-// #include <SPIFFS.h>
+#include <LittleFS.h>
+#include <ArduinoJson.h>
+#include <StreamUtils.h>
 #include <MHZ.h>
 #include <PubSubClient.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 #include <Adafruit_I2CDevice.h>
-// #include <ESPAsyncWebServer.h>
+#include <ESPAsyncWebServer.h>
 #include <SoftwareSerial.h>
+#include <tools.h>
 
 #include "config.h"
 
@@ -20,6 +21,7 @@ MHZ co2Sensor(&Serial2, MHZ::MHZ14A);
 WiFiManager wifiManager;
 WiFiClient espClient;
 PubSubClient client(espClient);
+static AsyncWebServer server(80);
 
 // timers
 unsigned long lastCo2Measurement = 0;
@@ -28,6 +30,13 @@ byte appState = 0; // 0 = init; 1 = preheating; 2 = ready
 
 int lastTemperature = 0;
 int lastCo2Value = 0;
+
+String getChipId()
+{
+    uint64_t chipId = ESP.getEfuseMac(); // 64-Bit MAC-Adresse
+    String chipIdStr = String((uint32_t)(chipId >> 32), HEX) + String((uint32_t)chipId, HEX);
+    return chipIdStr;
+}
 
 void setupWifi()
 {
@@ -90,14 +99,55 @@ void setupDisplay()
     display.display();
 }
 
+JsonDocument getInfoJson()
+{
+    JsonDocument doc;
+    doc["version"] = version;
+
+    JsonObject system = doc.createNestedObject("system");
+    system["deviceId"] = getChipId();
+    system["freeHeap"] = ESP.getFreeHeap(); // in V
+
+    // network
+    JsonObject network = doc.createNestedObject("network");
+    int8_t rssi = WiFi.RSSI();
+    network["wifiRssi"] = rssi;
+    network["wifiQuality"] = getRssiAsQuality(rssi);
+    network["wifiSsid"] = WiFi.SSID();
+    network["ip"] = WiFi.localIP().toString();
+    network["mac"] = WiFi.macAddress();
+
+    // CO2 meter
+    JsonObject co2Meter = doc.createNestedObject("co2");
+    co2Meter["isPreheating"] = co2Sensor.isPreHeating();
+    co2Meter["temperature"] = lastTemperature;
+    co2Meter["ppm"] = lastCo2Value > 0 ? lastCo2Value : 0;
+
+    return doc;
+}
+
+void setupWebServer()
+{
+    server.on("/api/info", HTTP_GET, [](AsyncWebServerRequest *request)
+              {
+StringStream stream;
+auto size = serializeJson(getInfoJson(), stream);
+
+request->send(stream, "application/json", size); });
+
+    server.begin();
+}
+
 void setup()
 {
     Serial.begin(115200);
     Serial2.begin(9600);
+    LittleFS.begin(true);
 
     setupWifi();
     setupWifiManager();
     setupOTA();
+    setupWebServer();
 
     co2Sensor.setDebug(true);
     setupDisplay();
