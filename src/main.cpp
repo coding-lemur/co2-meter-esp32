@@ -23,6 +23,9 @@ WiFiClient espClient;
 AsyncMqttClient mqttClient;
 static AsyncWebServer server(80);
 
+TimerHandle_t mqttReconnectTimer;
+TimerHandle_t wifiReconnectTimer;
+
 // timers
 unsigned long lastCo2Measurement = 0;
 
@@ -38,10 +41,36 @@ String getChipId()
     return chipIdStr;
 }
 
+void connectToMqtt()
+{
+    Serial.println("Connecting to MQTT...");
+    mqttClient.connect();
+}
+
+void WiFiEvent(WiFiEvent_t event)
+{
+    Serial.printf("[WiFi-event] event: %d\n", event);
+    switch (event)
+    {
+    case SYSTEM_EVENT_STA_GOT_IP:
+        Serial.println("WiFi connected");
+        Serial.println("IP address: ");
+        Serial.println(WiFi.localIP());
+        connectToMqtt();
+        break;
+    case SYSTEM_EVENT_STA_DISCONNECTED:
+        Serial.println("WiFi lost connection");
+        xTimerStop(mqttReconnectTimer, 0); // ensure we don't reconnect to MQTT while reconnecting to Wi-Fi
+        xTimerStart(wifiReconnectTimer, 0);
+        break;
+    }
+}
+
 void setupWifi()
 {
     WiFi.setHostname(HOST_NAME);
     WiFi.mode(WIFI_STA);
+    WiFi.onEvent(WiFiEvent);
     WiFi.begin();
 }
 
@@ -138,16 +167,58 @@ request->send(stream, "application/json", size); });
     server.begin();
 }
 
+void onMqttConnect(bool sessionPresent)
+{
+    isMqttConnected = true;
+
+    Serial.println("mqtt connected");
+
+    const char *subscribeTopic = getMqttTopic("in/#");
+
+    Serial.print("mqtt subscribe: ");
+    Serial.println(subscribeTopic);
+
+    mqttClient.subscribe(subscribeTopic, 1);
+    mqttClient.publish(getMqttTopic("out/connected"), 1, false);
+
+    sendInfo();
+}
+
+void onMqttDisconnect(AsyncMqttClientDisconnectReason reason)
+{
+    Serial.println("Disconnected from MQTT.");
+
+    if (WiFi.isConnected())
+    {
+        xTimerStart(mqttReconnectTimer, 0);
+    }
+}
+
+void setupMqtt()
+{
+    mqttClient.onConnect(onMqttConnect);
+    mqttClient.onDisconnect(onMqttDisconnect);
+    // mqttClient.onSubscribe(onMqttSubscribe);
+    // mqttClient.onUnsubscribe(onMqttUnsubscribe);
+    // mqttClient.onMessage(onMqttMessage);
+    // mqttClient.onPublish(onMqttPublish);
+    mqttClient.setServer(mqtt_host.c_str(), mqtt_port);
+}
+
 void setup()
 {
     Serial.begin(115200);
     Serial2.begin(9600);
     LittleFS.begin(true);
 
+    mqttReconnectTimer = xTimerCreate("mqttTimer", pdMS_TO_TICKS(2000), pdFALSE, (void *)0, reinterpret_cast<TimerCallbackFunction_t>(connectToMqtt));
+    wifiReconnectTimer = xTimerCreate("wifiTimer", pdMS_TO_TICKS(2000), pdFALSE, (void *)0, reinterpret_cast<TimerCallbackFunction_t>(connectToWifi));
+
     setupWifi();
     setupWifiManager();
     setupOTA();
     setupWebServer();
+    setupMqtt();
 
     co2Sensor.setDebug(true);
     setupDisplay();
