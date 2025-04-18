@@ -29,7 +29,10 @@ TimerHandle_t wifiReconnectTimer;
 // timers
 unsigned long lastCo2Measurement = 0;
 
-WiFiManagerParameter custom_mqtt_port;
+WiFiManagerParameter custom_mqtt_port("port", "mqtt port", mqtt_port, 6);
+WiFiManagerParameter custom_mqtt_server("server", "mqtt server", mqtt_server, 40);
+WiFiManagerParameter custom_mqtt_user("user", "mqtt user", mqtt_user, 40);
+WiFiManagerParameter custom_mqtt_password("password", "mqtt password", mqtt_password, 40);
 
 // default values for custom parameters
 char mqtt_server[40];
@@ -85,11 +88,10 @@ void setupWifiManager()
     wifiManager.setDebugOutput(true);
 
     // custom parameters
-    WiFiManagerParameter custom_mqtt_server("server", "mqtt server", mqtt_server, 40);
     wifiManager.addParameter(&custom_mqtt_server);
-
-    // custom_mqtt_port = WiFiManagerParameter("port", "mqtt port", mqtt_port, 6);
     wifiManager.addParameter(&custom_mqtt_port);
+    wifiManager.addParameter(&custom_mqtt_user);
+    wifiManager.addParameter(&custom_mqtt_password);
 
     connectToWifi();
 }
