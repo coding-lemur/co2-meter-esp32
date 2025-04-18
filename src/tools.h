@@ -3,6 +3,13 @@
 #include <LittleFS.h>
 #include <ArduinoJson.h>
 
+String getChipId()
+{
+    uint64_t chipId = ESP.getEfuseMac(); // 64-Bit MAC-Adresse
+    String chipIdStr = String((uint32_t)(chipId >> 32), HEX) + String((uint32_t)chipId, HEX);
+    return chipIdStr;
+}
+
 double round2(double value)
 {
     return (int)(value * 100 + 0.5) / 100.0;
