@@ -45,13 +45,6 @@ int lastCo2Value = 0;
 bool isWifiConnected = false;
 bool isMqttConnected = false;
 
-String getChipId()
-{
-    uint64_t chipId = ESP.getEfuseMac(); // 64-Bit MAC-Adresse
-    String chipIdStr = String((uint32_t)(chipId >> 32), HEX) + String((uint32_t)chipId, HEX);
-    return chipIdStr;
-}
-
 void connectToMqtt()
 {
     Serial.println("Connecting to MQTT...");
