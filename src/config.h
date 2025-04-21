@@ -12,3 +12,6 @@
 int CO2_WARN_PPM = 1200;
 
 const String version = "2.0.0-beta";
+
+// MQTT
+const String STATE_TOPIC = "co2-meter/sensor/state";

@@ -48,6 +48,41 @@ int lastCo2Value = 0;
 bool isWifiConnected = false;
 bool isMqttConnected = false;
 
+void publishHomeAssistantDiscovery()
+{
+    JsonDocument doc;
+    doc["name"] = "CO2 Sensor";
+    doc["state_topic"] = STATE_TOPIC;
+    doc["unit_of_measurement"] = "ppm";
+    doc["value_template"] = "{{ value_json.co2 }}";
+
+    JsonObject device = doc.createNestedObject("device");
+    device["identifiers"] = "co2_meter_" + getChipId();
+    device["name"] = "CO2 Meter";
+    device["model"] = "ESP32 CO2 Meter";
+    device["manufacturer"] = "coding-lemur";
+
+    // serialize JSON and send discover-topic
+    String topic = "homeassistant/sensor/co2_meter/config";
+    StringStream stream;
+    size_t n = serializeJson(doc, stream);
+    mqttClient.publish(topic.c_str(), 0, true, stream.str().c_str(), n);
+}
+
+void publishSensorState(int co2Value)
+{
+    // State-Topic für den CO2-Sensor
+
+    // JSON-Daten für den aktuellen Zustand
+    JsonDocument doc;
+    doc["co2"] = co2Value;
+
+    // Serialisiere das JSON und sende es an das State-Topic
+    StringStream stream;
+    size_t n = serializeJson(doc, stream);
+    mqttClient.publish(STATE_TOPIC.c_str(), 0, false, stream.str().c_str(), n);
+}
+
 void connectToMqtt()
 {
     Serial.println("Connecting to MQTT...");
@@ -189,6 +224,8 @@ void onMqttConnect(bool sessionPresent)
 
     Serial.println("mqtt connected");
 
+    publishHomeAssistantDiscovery();
+
     /*const char *subscribeTopic = getMqttTopic("in/#");
 
     Serial.print("mqtt subscribe: ");
@@ -297,6 +334,8 @@ void loop()
 
             Serial.print("co2: ");
             Serial.println(lastCo2Value);
+
+            publishSensorState(lastCo2Value);
 
             display.clearDisplay();
             display.setTextSize(2);
