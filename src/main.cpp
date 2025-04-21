@@ -85,6 +85,12 @@ void publishSensorState(int co2Value)
 
 void connectToMqtt()
 {
+    uint16_t mqttPortValue = static_cast<uint16_t>(strtol(mqtt_port, nullptr, 10));
+    mqttClient.setServer(mqtt_server, mqttPortValue);
+
+    if (mqtt_user != "")
+        mqttClient.setCredentials(mqtt_user, mqtt_password);
+
     Serial.println("Connecting to MQTT...");
     mqttClient.connect();
 }
@@ -196,16 +202,6 @@ JsonDocument getInfoJson()
     return doc;
 }
 
-/*void sendInfo()
-{
-    StringStream stream;
-    serializeJson(getInfoJson(), stream);
-
-    mqttClient.publish(getMqttTopic("out/info"), 1, false, stream.str().c_str());
-
-    lastInfoSend = millis();
-}*/
-
 void setupWebServer()
 {
     server.on("/api/info", HTTP_GET, [](AsyncWebServerRequest *request)
@@ -254,12 +250,6 @@ void setupMqtt()
     // mqttClient.onUnsubscribe(onMqttUnsubscribe);
     // mqttClient.onMessage(onMqttMessage);
     // mqttClient.onPublish(onMqttPublish);
-
-    uint16_t mqttPortValue = static_cast<uint16_t>(strtol(mqtt_port, nullptr, 10));
-    mqttClient.setServer(mqtt_server, mqttPortValue);
-
-    if (mqtt_user != "")
-        mqttClient.setCredentials(mqtt_user, mqtt_password);
 }
 
 void connectToWifi()
@@ -291,11 +281,11 @@ void setup()
     mqttReconnectTimer = xTimerCreate("mqttTimer", pdMS_TO_TICKS(2000), pdFALSE, (void *)0, reinterpret_cast<TimerCallbackFunction_t>(connectToMqtt));
     wifiReconnectTimer = xTimerCreate("wifiTimer", pdMS_TO_TICKS(2000), pdFALSE, (void *)0, reinterpret_cast<TimerCallbackFunction_t>(connectToWifi));
 
+    setupMqtt();
     setupWifi();
     setupWifiManager();
     setupOTA();
     setupWebServer();
-    setupMqtt();
 
     co2Sensor.setDebug(true);
     setupDisplay();
