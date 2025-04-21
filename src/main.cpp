@@ -86,10 +86,22 @@ void publishSensorState(int co2Value)
 
 void connectToMqtt()
 {
+    strcpy(mqtt_server, custom_mqtt_server.getValue());
+
+    if (strlen(mqtt_server) == 0)
+    {
+        Serial.println("MQTT server not configured. Skipping MQTT connection.");
+        return;
+    }
+
+    strcpy(mqtt_port, custom_mqtt_port.getValue());
     uint16_t mqttPortValue = static_cast<uint16_t>(strtol(mqtt_port, nullptr, 10));
     mqttClient.setServer(mqtt_server, mqttPortValue);
 
-    if (mqtt_user != "")
+    strcpy(mqtt_user, custom_mqtt_user.getValue());
+    strcpy(mqtt_password, custom_mqtt_password.getValue());
+
+    if (strlen(mqtt_user) > 0)
         mqttClient.setCredentials(mqtt_user, mqtt_password);
 
     Serial.println("Connecting to MQTT...");
@@ -136,12 +148,7 @@ void connectToWifi()
     auto isConnected = wifiManager.autoConnect(AP_NAME, AP_PASSWORD);
 
     if (isConnected)
-    {
         Serial.println("connected to wifi");
-
-        strcpy(mqtt_server, custom_mqtt_server.getValue());
-        strcpy(mqtt_port, custom_mqtt_port.getValue());
-    }
     else
         Serial.println("config portal running");
 }
