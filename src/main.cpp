@@ -49,6 +49,8 @@ int lastCo2Value = 0;
 bool isWifiConnected = false;
 bool isMqttConnected = false;
 
+byte failedMqttConntections = 0;
+
 void publishHomeAssistantDiscovery()
 {
     JsonDocument doc;
@@ -83,6 +85,19 @@ void publishSensorState(int co2Value)
 
 void connectToMqtt()
 {
+    failedMqttConntections++;
+
+    if ((failedMqttConntections > 3) && (mqttReconnectTimer != nullptr))
+    {
+        Serial.println("too many failed MQTT connections..");
+
+        xTimerDelete(mqttReconnectTimer, 0);
+        mqttReconnectTimer = nullptr;
+
+        Serial.println("mqttReconnectTimer deleted.");
+        return;
+    }
+
     Serial.println("connectToMqtt()");
 
     strcpy(mqtt_server, custom_mqtt_server.getValue());
@@ -274,6 +289,7 @@ request->send(stream, "application/json", size); });
 void onMqttConnect(bool sessionPresent)
 {
     isMqttConnected = true;
+    failedMqttConntections = 0;
 
     Serial.println("mqtt connected");
 
