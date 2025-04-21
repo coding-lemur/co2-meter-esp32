@@ -1,7 +1,5 @@
-#define AP_NAME "co2-meter AP"
+#define HOST_NAME "co2-meter"
 #define AP_PASSWORD "co42meter"
-
-#define HOST_NAME "co2-meter-"
 
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
 #define SCREEN_HEIGHT 64 // OLED display height, in pixels

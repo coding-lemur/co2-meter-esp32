@@ -84,6 +84,7 @@ void publishSensorState(int co2Value)
 void connectToMqtt()
 {
     strcpy(mqtt_server, custom_mqtt_server.getValue());
+    Serial.println("config MQTT server: " + String(mqtt_server));
 
     if (strlen(mqtt_server) == 0)
     {
@@ -92,11 +93,14 @@ void connectToMqtt()
     }
 
     strcpy(mqtt_port, custom_mqtt_port.getValue());
+    Serial.println("config MQTT port: " + String(mqtt_port));
     uint16_t mqttPortValue = static_cast<uint16_t>(strtol(mqtt_port, nullptr, 10));
     mqttClient.setServer(mqtt_server, mqttPortValue);
 
     strcpy(mqtt_user, custom_mqtt_user.getValue());
     strcpy(mqtt_password, custom_mqtt_password.getValue());
+    Serial.println("config MQTT user: " + String(mqtt_user));
+    Serial.println("config MQTT password: " + String(mqtt_password));
 
     if (strlen(mqtt_user) > 0)
         mqttClient.setCredentials(mqtt_user, mqtt_password);
@@ -126,10 +130,15 @@ void WiFiEvent(WiFiEvent_t event)
     }
 }
 
+const char *createHostname(String prefix)
+{
+    String hostname = prefix + '-' + getChipId();
+    return hostname.c_str();
+}
+
 void setupWifi()
 {
-    String hostname = String(HOST_NAME) + getChipId();
-    WiFi.setHostname(hostname.c_str());
+    WiFi.setHostname(createHostname(String(HOST_NAME)));
 
     WiFi.mode(WIFI_STA);
     WiFi.onEvent(WiFiEvent);
@@ -144,7 +153,7 @@ void connectToWifi()
         return;
     }
 
-    auto isConnected = wifiManager.autoConnect(AP_NAME, AP_PASSWORD);
+    auto isConnected = wifiManager.autoConnect(createHostname(String(HOST_NAME) + "-AP"), AP_PASSWORD);
 
     if (isConnected)
         Serial.println("connected to wifi");
@@ -167,7 +176,7 @@ void setupWifiManager()
 
 void setupOTA()
 {
-    ArduinoOTA.setHostname("co2-meter-ota");
+    ArduinoOTA.setHostname(createHostname(String(HOST_NAME) + "-OTA"));
 
     ArduinoOTA.onStart([]()
                        { Serial.println("[OTA] starting"); });
