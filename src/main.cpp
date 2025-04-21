@@ -244,7 +244,7 @@ JsonDocument getInfoJson()
 void hardReset()
 {
     Serial.println("starting hard-reset");
-    LittleFS.format();
+    wifiManager.resetSettings();
 
     delay(1000);
     ESP.restart();
