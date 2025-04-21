@@ -29,16 +29,17 @@ TimerHandle_t wifiReconnectTimer;
 // timers
 unsigned long lastCo2Measurement = 0;
 
-WiFiManagerParameter custom_mqtt_port("port", "mqtt port", mqtt_port, 6);
-WiFiManagerParameter custom_mqtt_server("server", "mqtt server", mqtt_server, 40);
-WiFiManagerParameter custom_mqtt_user("user", "mqtt user", mqtt_user, 40);
-WiFiManagerParameter custom_mqtt_password("password", "mqtt password", mqtt_password, 40);
+// custom parameters
 
-// default values for custom parameters
 char mqtt_server[40];
 char mqtt_port[6] = "8080";
 char mqtt_user[20];
 char mqtt_password[20];
+
+WiFiManagerParameter custom_mqtt_port("port", "mqtt port", mqtt_port, 6);
+WiFiManagerParameter custom_mqtt_server("server", "mqtt server", mqtt_server, 40);
+WiFiManagerParameter custom_mqtt_user("user", "mqtt user", mqtt_user, 40);
+WiFiManagerParameter custom_mqtt_password("password", "mqtt password", mqtt_password, 40);
 
 byte appState = 0; // 0 = init; 1 = preheating; 2 = ready
 
@@ -122,6 +123,27 @@ void setupWifi()
     WiFi.mode(WIFI_STA);
     WiFi.onEvent(WiFiEvent);
     WiFi.begin();
+}
+
+void connectToWifi()
+{
+    if (WiFi.isConnected())
+    {
+        Serial.println("Already connected to WiFi");
+        return;
+    }
+
+    auto isConnected = wifiManager.autoConnect(AP_NAME, AP_PASSWORD);
+
+    if (isConnected)
+    {
+        Serial.println("connected to wifi");
+
+        strcpy(mqtt_server, custom_mqtt_server.getValue());
+        strcpy(mqtt_port, custom_mqtt_port.getValue());
+    }
+    else
+        Serial.println("config portal running");
 }
 
 void setupWifiManager()
@@ -252,26 +274,6 @@ void setupMqtt()
     // mqttClient.onPublish(onMqttPublish);
 }
 
-void connectToWifi()
-{
-    if (WiFi.isConnected())
-    {
-        Serial.println("Already connected to WiFi");
-        return;
-    }
-
-    auto isConnected = wifiManager.autoConnect(AP_NAME, AP_PASSWORD);
-
-    if (isConnected)
-    {
-        Serial.println("connected to wifi");
-
-        strcpy(mqtt_server, custom_mqtt_server.getValue());
-        strcpy(mqtt_port, custom_mqtt_port.getValue());
-    }
-    else
-        Serial.println("config portal running");
-}
 void setup()
 {
     Serial.begin(115200);
