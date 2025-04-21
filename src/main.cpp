@@ -83,6 +83,8 @@ void publishSensorState(int co2Value)
 
 void connectToMqtt()
 {
+    Serial.println("connectToMqtt()");
+
     strcpy(mqtt_server, custom_mqtt_server.getValue());
     Serial.println("config MQTT server: " + String(mqtt_server));
 
@@ -239,14 +241,31 @@ JsonDocument getInfoJson()
     return doc;
 }
 
+void hardReset()
+{
+    Serial.println("starting hard-reset");
+    LittleFS.format();
+
+    delay(1000);
+    ESP.restart();
+}
+
 void setupWebServer()
 {
+    server.on("/", HTTP_GET, [](AsyncWebServerRequest *request)
+              { request->send(200, "text/plain", "Hi! This is a sample response."); });
+
     server.on("/api/info", HTTP_GET, [](AsyncWebServerRequest *request)
               {
 StringStream stream;
 auto size = serializeJson(getInfoJson(), stream);
 
 request->send(stream, "application/json", size); });
+
+    server.on("/api/hard-reset", HTTP_POST, [](AsyncWebServerRequest *request)
+              {
+                  request->send(200, "text/plain", "Hard reset initiated.");
+                  hardReset(); });
 
     server.begin();
 }
