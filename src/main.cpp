@@ -31,8 +31,8 @@ unsigned long lastCo2Measurement = 0;
 
 // custom parameters
 
-char mqtt_server[40];
-char mqtt_port[6] = "8080";
+char mqtt_server[40] = "mqtt.example.com";
+char mqtt_port[6] = "1883";
 char mqtt_user[20];
 char mqtt_password[20];
 
@@ -155,7 +155,8 @@ void connectToWifi()
         return;
     }
 
-    auto isConnected = wifiManager.autoConnect(createHostname(String(HOST_NAME) + "-AP"), AP_PASSWORD);
+    String hostname = String(HOST_NAME) + "-AP";
+    auto isConnected = wifiManager.autoConnect(hostname.c_str(), AP_PASSWORD);
 
     if (isConnected)
         Serial.println("connected to wifi");
