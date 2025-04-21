@@ -66,7 +66,8 @@ void publishHomeAssistantDiscovery()
     device["manufacturer"] = "coding-lemur";
 
     // serialize JSON and send discover-topic
-    String topic = "homeassistant/sensor/co2_meter/config";
+    // TODO fix auto-discovery (https://www.home-assistant.io/integrations/mqtt#mqtt-discovery)
+    String topic = "homeassistant/device/co2_meter_" + getChipId() + "/config";
     StringStream stream;
     size_t n = serializeJson(doc, stream);
     mqttClient.publish(topic.c_str(), 0, true, stream.str().c_str(), n);
