@@ -72,13 +72,10 @@ void publishHomeAssistantDiscovery()
 
 void publishSensorState(int co2Value)
 {
-    // State-Topic für den CO2-Sensor
-
-    // JSON-Daten für den aktuellen Zustand
     JsonDocument doc;
     doc["co2"] = co2Value;
 
-    // Serialisiere das JSON und sende es an das State-Topic
+    // serialize JSON and send topic
     StringStream stream;
     size_t n = serializeJson(doc, stream);
     mqttClient.publish(STATE_TOPIC.c_str(), 0, false, stream.str().c_str(), n);
@@ -131,7 +128,9 @@ void WiFiEvent(WiFiEvent_t event)
 
 void setupWifi()
 {
-    WiFi.setHostname(HOST_NAME);
+    String hostname = String(HOST_NAME) + getChipId();
+    WiFi.setHostname(hostname.c_str());
+
     WiFi.mode(WIFI_STA);
     WiFi.onEvent(WiFiEvent);
     WiFi.begin();
