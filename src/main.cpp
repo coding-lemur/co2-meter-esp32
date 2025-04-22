@@ -308,6 +308,7 @@ void onMqttConnect(bool sessionPresent)
 
     Serial.println("mqtt connected");
 
+    // TODO add option to enable/disable auto-discovery
     publishHomeAssistantDiscovery();
 
     /*const char *subscribeTopic = getMqttTopic("in/#");
