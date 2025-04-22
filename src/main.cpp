@@ -41,6 +41,8 @@ WiFiManagerParameter custom_mqtt_server("server", "mqtt server", mqtt_server, 40
 WiFiManagerParameter custom_mqtt_user("user", "mqtt user", mqtt_user, 40);
 WiFiManagerParameter custom_mqtt_password("password", "mqtt password", mqtt_password, 40);
 
+const String chipId = getChipId();
+
 byte appState = 0; // 0 = init; 1 = preheating; 2 = ready
 
 int lastTemperature = 0;
@@ -60,14 +62,14 @@ void publishHomeAssistantDiscovery()
     doc["value_template"] = "{{ value_json.co2 }}";
 
     JsonObject device = doc.createNestedObject("device");
-    device["identifiers"] = "co2_meter_" + getChipId();
+    device["identifiers"] = "co2_meter_" + chipId;
     device["name"] = "CO2 Meter";
     device["model"] = "ESP32 CO2 Meter";
     device["manufacturer"] = "coding-lemur";
 
     // serialize JSON and send discover-topic
     // TODO fix auto-discovery (https://www.home-assistant.io/integrations/mqtt#mqtt-discovery)
-    String topic = "homeassistant/device/co2_meter_" + getChipId() + "/config";
+    String topic = "homeassistant/sensor/co2_meter_" + chipId + "/config";
     StringStream stream;
     size_t n = serializeJson(doc, stream);
     mqttClient.publish(topic.c_str(), 0, true, stream.str().c_str(), n);
@@ -150,7 +152,7 @@ void WiFiEvent(WiFiEvent_t event)
 
 const char *createHostname(String prefix)
 {
-    String hostname = prefix + '-' + getChipId();
+    String hostname = prefix + '-' + chipId;
     return hostname.c_str();
 }
 
@@ -231,14 +233,26 @@ void setupDisplay()
     display.display();
 }
 
+// TODO move to tools.h
 JsonDocument getInfoJson()
 {
     JsonDocument doc;
     doc["version"] = version;
 
     JsonObject system = doc.createNestedObject("system");
-    system["deviceId"] = getChipId();
-    system["freeHeap"] = ESP.getFreeHeap(); // in V
+    system["deviceId"] = chipId;
+    system["freeHeap"] = ESP.getFreeHeap();
+    system["cpuFreq"] = ESP.getCpuFreqMHz();
+    system["flashSize"] = ESP.getFlashChipSize();
+    system["flashSpeed"] = ESP.getFlashChipSpeed();
+    system["flashMode"] = ESP.getFlashChipMode();
+    system["sdkVersion"] = ESP.getSdkVersion();
+    system["chipModel"] = ESP.getChipModel();
+    system["chipCores"] = ESP.getChipCores();
+    system["freePsram"] = ESP.getFreePsram();
+
+    float temp_celsius = (temperatureRead() - 32) / 1.8; // convert from Fahrenheit to Celsius
+    system["temperature"] = temp_celsius;
 
     // network
     JsonObject network = doc.createNestedObject("network");
