@@ -43,6 +43,9 @@ WiFiManagerParameter custom_mqtt_password("password", "mqtt password", mqtt_pass
 
 const String chipId = getChipId();
 
+const String mqttStateTopic = "home/co2meter/" + chipId + "/state";
+const String mqttDiscoverTopic = "homeassistant/sensor/co2_meter_" + chipId + "/co2/config";
+
 byte appState = 0; // 0 = init; 1 = preheating; 2 = ready
 
 int lastTemperature = 0;
@@ -56,23 +59,15 @@ byte failedMqttConntections = 0;
 void publishHomeAssistantDiscovery()
 {
     JsonDocument doc;
-    doc["name"] = "CO2 Sensor";
-    doc["state_topic"] = STATE_TOPIC;
-    doc["unit_of_measurement"] = "ppm";
-    doc["value_template"] = "{{ value_json.co2 }}";
-
-    JsonObject device = doc.createNestedObject("device");
-    device["identifiers"] = "co2_meter_" + chipId;
-    device["name"] = "CO2 Meter";
-    device["model"] = "ESP32 CO2 Meter";
-    device["manufacturer"] = "coding-lemur";
+    doc["name"] = "co2 meter";
+    doc["stat_t"] = mqttStateTopic;
+    doc["unit_of_meas"] = "ppm";
+    doc["val_tpl"] = "{{ value_json.co2|default(0) }}";
 
     // serialize JSON and send discover-topic
-    // TODO fix auto-discovery (https://www.home-assistant.io/integrations/mqtt#mqtt-discovery)
-    String topic = "homeassistant/sensor/co2_meter_" + chipId + "/config";
     StringStream stream;
     size_t n = serializeJson(doc, stream);
-    mqttClient.publish(topic.c_str(), 0, true, stream.str().c_str(), n);
+    mqttClient.publish(mqttDiscoverTopic.c_str(), 0, true, stream.str().c_str(), n);
 }
 
 void publishSensorState(int co2Value)
@@ -83,7 +78,7 @@ void publishSensorState(int co2Value)
     // serialize JSON and send topic
     StringStream stream;
     size_t n = serializeJson(doc, stream);
-    mqttClient.publish(STATE_TOPIC.c_str(), 0, false, stream.str().c_str(), n);
+    mqttClient.publish(mqttStateTopic.c_str(), 0, false, stream.str().c_str(), n);
 }
 
 void connectToMqtt()
