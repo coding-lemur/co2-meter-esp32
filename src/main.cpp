@@ -36,8 +36,8 @@ char mqtt_port[6] = "1883";
 char mqtt_user[20];
 char mqtt_password[20];
 
-WiFiManagerParameter custom_mqtt_port("port", "mqtt port", mqtt_port, 6);
 WiFiManagerParameter custom_mqtt_server("server", "mqtt server", mqtt_server, 40);
+WiFiManagerParameter custom_mqtt_port("port", "mqtt port", mqtt_port, 6);
 WiFiManagerParameter custom_mqtt_user("user", "mqtt user", mqtt_user, 40);
 WiFiManagerParameter custom_mqtt_password("password", "mqtt password", mqtt_password, 40);
 
