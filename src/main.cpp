@@ -42,9 +42,10 @@ WiFiManagerParameter custom_mqtt_user("user", "mqtt user", mqtt_user, 40);
 WiFiManagerParameter custom_mqtt_password("password", "mqtt password", mqtt_password, 40);
 
 const String chipId = getChipId();
+const String objectId = "co2_meter_" + chipId;
 
-const String mqttStateTopic = "home/co2meter/" + chipId + "/state";
-const String mqttDiscoverTopic = "homeassistant/sensor/co2_meter_" + chipId + "/co2/config";
+const String mqttStateTopic = "co2meter/" + chipId + "/state";
+const String mqttDiscoverTopic = "homeassistant/sensor/" + objectId + "/co2/config";
 
 byte appState = 0; // 0 = init; 1 = preheating; 2 = ready
 
@@ -62,8 +63,10 @@ void publishHomeAssistantDiscovery()
 {
     JsonDocument doc;
     doc["name"] = "co2 meter";
-    doc["stat_t"] = mqttStateTopic;
+    doc["uniq_id"] = objectId;
     doc["unit_of_meas"] = "ppm";
+    doc["dev_cla"] = "carbon_dioxide";
+    doc["stat_t"] = mqttStateTopic;
     doc["val_tpl"] = "{{ value_json.co2|default(0) }}";
 
     // serialize JSON and send discover-topic
