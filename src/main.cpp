@@ -411,19 +411,21 @@ void setupMqtt()
     // mqttClient.onPublish(onMqttPublish);
 }
 
+void setupTimers()
+{
+    mqttReconnectTimer = xTimerCreate("mqttTimer", pdMS_TO_TICKS(2000), pdFALSE, (void *)0, reinterpret_cast<TimerCallbackFunction_t>(connectToMqtt));
+    wifiReconnectTimer = xTimerCreate("wifiTimer", pdMS_TO_TICKS(2000), pdFALSE, (void *)0, reinterpret_cast<TimerCallbackFunction_t>(connectToWifi));
+}
+
 void setup()
 {
     Serial.begin(115200);
     Serial2.begin(9600);
 
     if (!LittleFS.begin(true))
-    {
         Serial.println("Failed to mount LittleFS");
-    }
 
-    mqttReconnectTimer = xTimerCreate("mqttTimer", pdMS_TO_TICKS(2000), pdFALSE, (void *)0, reinterpret_cast<TimerCallbackFunction_t>(connectToMqtt));
-    wifiReconnectTimer = xTimerCreate("wifiTimer", pdMS_TO_TICKS(2000), pdFALSE, (void *)0, reinterpret_cast<TimerCallbackFunction_t>(connectToWifi));
-
+    setupTimers();
     setupMqtt();
     setupWifi();
     loadConfig();
