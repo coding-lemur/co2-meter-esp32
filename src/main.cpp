@@ -53,6 +53,7 @@ int lastTemperature = 0;
 int lastCo2Value = 0;
 
 bool shouldSaveConfig = false; // flag for saving data
+bool configLoaded = false;     // flag for config loaded
 
 bool isWifiConnected = false;
 bool isMqttConnected = false;
@@ -116,6 +117,12 @@ void connectToMqtt()
         mqttClient.setCredentials(mqtt_user, mqtt_password);
 
     Serial.println("Connecting to MQTT...");
+
+    Serial.println("MQTT Server: " + String(mqtt_server));
+    Serial.println("MQTT Port: " + String(mqtt_port));
+    Serial.println("MQTT User: " + String(mqtt_user));
+    Serial.println("MQTT Password: " + String(mqtt_password));
+
     mqttClient.connect();
 }
 
@@ -160,7 +167,7 @@ void saveConfig()
     // save config
     Serial.println("Saving config...");
 
-    File configFile = LittleFS.open("/config.json", "w");
+    File configFile = LittleFS.open(CONFIG_FILE_PATH, "w");
     if (!configFile)
     {
         Serial.println("Failed to open config file for writing");
@@ -194,14 +201,17 @@ void connectToWifi()
     {
         Serial.println("connected to wifi");
 
-        // read updated parameters
-        strcpy(mqtt_server, custom_mqtt_server.getValue());
-        strcpy(mqtt_port, custom_mqtt_port.getValue());
-        strcpy(mqtt_user, custom_mqtt_user.getValue());
-        strcpy(mqtt_password, custom_mqtt_password.getValue());
+        if (!configLoaded)
+        {
+            // read updated parameters
+            strcpy(mqtt_server, custom_mqtt_server.getValue());
+            strcpy(mqtt_port, custom_mqtt_port.getValue());
+            strcpy(mqtt_user, custom_mqtt_user.getValue());
+            strcpy(mqtt_password, custom_mqtt_password.getValue());
 
-        if (shouldSaveConfig)
-            saveConfig();
+            if (shouldSaveConfig)
+                saveConfig();
+        }
     }
     else
         Serial.println("config portal running");
@@ -209,14 +219,14 @@ void connectToWifi()
 
 void loadConfig()
 {
-    if (!LittleFS.exists("/config.json"))
+    if (!LittleFS.exists(CONFIG_FILE_PATH))
     {
         Serial.println("No config file found, using default values");
         return;
     }
 
     // load settings
-    File configFile = LittleFS.open("/config.json", "r");
+    File configFile = LittleFS.open(CONFIG_FILE_PATH, "r");
     if (!configFile)
     {
         Serial.println("Failed to open config file");
@@ -240,6 +250,8 @@ void loadConfig()
     strlcpy(mqtt_password, jsonDoc["mqtt_password"] | "", sizeof(mqtt_password));
 
     Serial.println("Config loaded successfully");
+    configLoaded = true;
+
     Serial.println("MQTT Server: " + String(mqtt_server));
     Serial.println("MQTT Port: " + String(mqtt_port));
     Serial.println("MQTT User: " + String(mqtt_user));
@@ -349,6 +361,7 @@ void hardReset()
 {
     Serial.println("starting hard-reset");
     wifiManager.resetSettings();
+    LittleFS.remove(CONFIG_FILE_PATH);
 
     delay(1000);
     ESP.restart();
