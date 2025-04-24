@@ -10,4 +10,4 @@
 const int CO2_WARN_PPM = 1200;
 const char *CONFIG_FILE_PATH = "/config.json";
 
-const String version = "2.0.0-beta";
+const String VERSION = "2.0.0-beta";

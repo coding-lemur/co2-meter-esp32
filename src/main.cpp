@@ -70,6 +70,14 @@ void publishHomeAssistantDiscovery()
     doc["stat_t"] = mqttStateTopic;
     doc["val_tpl"] = "{{ value_json.co2|default(0) }}";
 
+    JsonObject dev = doc["dev"].to<JsonObject>();
+    dev["ids"] = chipId;
+    dev["name"] = objectId;
+    dev["sw"] = VERSION;
+    dev["mf"] = "coding-lemur";
+    dev["mdl"] = "CO2 Meter";
+    dev["cu"] = WiFi.localIP().toString();
+
     // serialize JSON and send discover-topic
     StringStream stream;
     size_t n = serializeJson(doc, stream);
@@ -89,6 +97,12 @@ void publishSensorState(int co2Value)
 
 void connectToMqtt()
 {
+    if (mqttClient.connected())
+    {
+        Serial.println("Already connected to MQTT");
+        return;
+    }
+
     failedMqttConntections++;
 
     if ((failedMqttConntections > 3) && (mqttReconnectTimer != nullptr))
@@ -101,8 +115,6 @@ void connectToMqtt()
         Serial.println("mqttReconnectTimer deleted.");
         return;
     }
-
-    Serial.println("connectToMqtt()");
 
     if (strlen(mqtt_server) == 0)
     {
@@ -118,10 +130,10 @@ void connectToMqtt()
 
     Serial.println("Connecting to MQTT...");
 
-    Serial.println("MQTT Server: " + String(mqtt_server));
+    /*Serial.println("MQTT Server: " + String(mqtt_server));
     Serial.println("MQTT Port: " + String(mqtt_port));
     Serial.println("MQTT User: " + String(mqtt_user));
-    Serial.println("MQTT Password: " + String(mqtt_password));
+    Serial.println("MQTT Password: " + String(mqtt_password));*/
 
     mqttClient.connect();
 }
@@ -251,12 +263,6 @@ void loadConfig()
 
     Serial.println("Config loaded successfully");
     configLoaded = true;
-
-    Serial.println("MQTT Server: " + String(mqtt_server));
-    Serial.println("MQTT Port: " + String(mqtt_port));
-    Serial.println("MQTT User: " + String(mqtt_user));
-    Serial.println("MQTT Password: " + String(mqtt_password));
-
     configFile.close();
 }
 
@@ -322,9 +328,9 @@ void setupDisplay()
 JsonDocument getInfoJson()
 {
     JsonDocument doc;
-    doc["version"] = version;
+    doc["version"] = VERSION;
 
-    JsonObject system = doc.createNestedObject("system");
+    JsonObject system = doc["system"].to<JsonObject>();
     system["deviceId"] = chipId;
     system["freeHeap"] = ESP.getFreeHeap();
     system["cpuFreq"] = ESP.getCpuFreqMHz();
@@ -340,7 +346,7 @@ JsonDocument getInfoJson()
     system["temperature"] = temp_celsius;
 
     // network
-    JsonObject network = doc.createNestedObject("network");
+    JsonObject network = doc["network"].to<JsonObject>();
     int8_t rssi = WiFi.RSSI();
     network["wifiRssi"] = rssi;
     network["wifiQuality"] = getRssiAsQuality(rssi);
@@ -349,7 +355,7 @@ JsonDocument getInfoJson()
     network["mac"] = WiFi.macAddress();
 
     // CO2 meter
-    JsonObject co2Meter = doc.createNestedObject("co2");
+    JsonObject co2Meter = doc["co2"].to<JsonObject>();
     co2Meter["isPreheating"] = co2Sensor.isPreHeating();
     co2Meter["temperature"] = lastTemperature;
     co2Meter["ppm"] = lastCo2Value > 0 ? lastCo2Value : 0;
