@@ -42,10 +42,10 @@ WiFiManagerParameter custom_mqtt_user("user", "mqtt user", mqtt_user, 40);
 WiFiManagerParameter custom_mqtt_password("password", "mqtt password", mqtt_password, 40);
 
 const String chipId = getChipId();
-const String objectId = "co2_meter_" + chipId;
+const String objectId = "co2meter_" + chipId;
 
 const String mqttStateTopic = "co2meter/" + chipId + "/state";
-const String mqttDiscoverTopic = "homeassistant/sensor/" + objectId + "/co2/config";
+const String mqttDiscoverTopic = "homeassistant/sensor/co2meter/config";
 
 byte appState = 0; // 0 = init; 1 = preheating; 2 = ready
 
@@ -63,7 +63,7 @@ byte failedMqttConntections = 0;
 void publishHomeAssistantDiscovery()
 {
     JsonDocument doc;
-    doc["name"] = "co2 meter";
+    doc["name"] = "CO2 Meter";
     doc["uniq_id"] = objectId;
     doc["unit_of_meas"] = "ppm";
     doc["dev_cla"] = "carbon_dioxide";
@@ -347,14 +347,14 @@ JsonDocument getInfoJson()
 
     // network
     JsonObject network = doc["network"].to<JsonObject>();
-    int8_t rssi = WiFi.RSSI();
+    const int8_t rssi = WiFi.RSSI();
     network["wifiRssi"] = rssi;
     network["wifiQuality"] = getRssiAsQuality(rssi);
     network["wifiSsid"] = WiFi.SSID();
     network["ip"] = WiFi.localIP().toString();
     network["mac"] = WiFi.macAddress();
 
-    // CO2 meter
+    // CO2 Meter
     JsonObject co2Meter = doc["co2"].to<JsonObject>();
     co2Meter["isPreheating"] = co2Sensor.isPreHeating();
     co2Meter["temperature"] = lastTemperature;
